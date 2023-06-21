@@ -24,7 +24,14 @@ class BufferedROSMsgHandlerPy:
 
     
     def register_for_updates(self, topic_name):
-        self.__subscriber = self.__node.create_subscription(msg_type=self.__data_class, topic=topic_name, callback=self.__update_func, qos_profile=1)
+        qos_profile = rclpy.qos.QoSProfile(
+            reliability=rclpy.qos.QoSReliabilityPolicy.BEST_EFFORT,
+            history=rclpy.qos.QoSHistoryPolicy.KEEP_LAST,
+            depth=1,
+            durability=rclpy.qos.QoSDurabilityPolicy.VOLATILE
+        )
+        
+        self.__subscriber = self.__node.create_subscription(msg_type=self.__data_class, topic=topic_name, callback=self.__update_func, qos_profile=qos_profile)
     
     def get(self):
         if(self.__update_occurred):
