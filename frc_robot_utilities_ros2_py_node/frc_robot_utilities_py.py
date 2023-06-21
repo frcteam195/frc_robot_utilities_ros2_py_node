@@ -12,26 +12,34 @@ from frc_robot_utilities_ros2_py_node.BufferedROSMsgHandlerPy import BufferedROS
 from frc_robot_utilities_ros2_py_node.RobotStatusHelperPy import RobotStatusHelperPy, Alliance, RobotMode
 from robot_localization.srv import SetPose
 
+from ck_utilities_ros2_py_node.node_handle import NodeHandle
+
 from ck_utilities_ros2_py_node.geometry import *
 from ck_utilities_ros2_py_node.ckmath import *
 
-hmi_updates = BufferedROSMsgHandlerPy(HMISignals)
-
-robot_updates_internal = BufferedROSMsgHandlerPy(RobotStatus)
-robot_status = RobotStatusHelperPy(robot_updates_internal)
+hmi_updates : BufferedROSMsgHandlerPy = None
+robot_updates_internal : BufferedROSMsgHandlerPy = None
+robot_status : RobotStatusHelperPy = None
 
 set_pose : rclpy.client.Client = None
 
-node : rclpy.node.Node = None
+initialized = False
 
-def register_for_robot_updates(node_handle):
+def register_for_robot_updates():
     global hmi_updates
     global robot_status
     global robot_updates_internal
-    global node
     global set_pose
+    global initialized
 
-    node = node_handle
+    if initialized: return
+
+    hmi_updates = BufferedROSMsgHandlerPy(HMISignals)
+    robot_updates_internal = BufferedROSMsgHandlerPy(RobotStatus)
+    robot_status = RobotStatusHelperPy(robot_updates_internal)
+    initialized = True
+
+    node = NodeHandle().node_handle
 
     hmi_updates.register_for_updates("/HMISignals")
     robot_updates_internal.register_for_updates("/RobotStatus")
@@ -39,12 +47,10 @@ def register_for_robot_updates(node_handle):
     set_pose = node.create_client(srv_type=SetPose, srv_name='/set_pose')
 
 def reset_robot_pose(alliance : Alliance, x_inches=0, y_inches=0, heading_degrees=0):
-    global node
-    odom = geometry_msgs.msg.PoseWithCovarianceStamped()
-    
-    if (node is not None):
-        odom.header.stamp = node.get_clock().now()
+    node = NodeHandle().node_handle
 
+    odom = geometry_msgs.msg.PoseWithCovarianceStamped()
+    odom.header.stamp = node.get_clock().now()
     odom.header.frame_id = 'odom'
 
     pose = Pose()

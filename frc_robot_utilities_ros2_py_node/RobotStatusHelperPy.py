@@ -1,7 +1,7 @@
 from enum import Enum
 from threading import Lock
-from frc_robot_utilities_py_node.BufferedROSMsgHandlerPy import BufferedROSMsgHandlerPy
-from ck_ros_base_msgs_node.msg import Robot_Status
+from frc_robot_utilities_ros2_py_node.BufferedROSMsgHandlerPy import BufferedROSMsgHandlerPy
+from ck_ros2_base_msgs_node.msg import RobotStatus
 
 class Alliance(Enum):
     RED = 0
@@ -29,7 +29,7 @@ class RobotStatusHelperPy:
         if(self.__bufmsgobj.has_updated()):
             self.__mutex.acquire()
             try:
-                r_stat : Robot_Status = self.__bufmsgobj.get()
+                r_stat : RobotStatus = self.__bufmsgobj.get()
                 self.__robot_state = RobotMode(r_stat.robot_state)
                 self.__alliance = Alliance(r_stat.alliance)
                 self.__match_time = r_stat.match_time
